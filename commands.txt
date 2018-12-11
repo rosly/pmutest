@@ -1,0 +1,26 @@
+#Generate random data
+./genrandom.sh
+
+#Kompilacja
+gcc -o colcnt colcnt.c -O3 -g
+
+#Obwiednia problemu
+perf stat ./colcnt random.bin
+
+#Gdzie jest problem
+perf record ./colcnt random.bin
+perf report
+
+#Czy problem to cache
+perf stat -e cache-references:u,cache-misses:u ./colcnt random.bin
+perf record -e '{cycles:u,cache-references:u,cache-misses:u}' ./colcnt random.bin
+
+#Rekompilacja 
+gcc -o colcnt colcnt.c -O3 -g -DFIXL1
+#obwiednia
+perf stat -e cache-references:u,cache-misses:u ./colcnt random.bin
+
+#Czy prefetch pomo≈e
+gcc -o colcnt colcnt.c -O3 -g -DFIXL1 -DFIXPREF
+perf stat -e cache-references:u,cache-misses:u ./colcnt random.bin
+
