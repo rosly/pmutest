@@ -4,23 +4,25 @@
 #Kompilacja
 gcc -o colcnt colcnt.c -O3 -g
 
-#Obwiednia problemu
+#Obwiednia problemu, ile instrukcji na cykl wykonuje nasz program?
 perf stat ./colcnt random.bin
 
-#Gdzie jest problem
+#Gdzie jest problem (gdzie program spedza najwiecej czasu)?
 perf record ./colcnt random.bin
 perf report
 
-#Czy problem to cache
-perf stat -e cache-references:u,cache-misses:u ./colcnt random.bin
+#Sprawdzmy czy problem koreluje się z eventami cache miss
 perf record -e '{cycles:u,cache-references:u,cache-misses:u}' ./colcnt random.bin
+
+#Sprawdzmy ile ogólnie mamy cache miss'ow
+perf stat -e cache-references:u,cache-misses:u ./colcnt random.bin
 
 #Rekompilacja 
 gcc -o colcnt colcnt.c -O3 -g -DFIXL1
-#obwiednia
+
+#Czy teraz jest mniej cache miss'ow?
 perf stat -e cache-references:u,cache-misses:u ./colcnt random.bin
 
-#Czy prefetch pomo�e
+#Skoro problem został rozwiązany to może prefetch pomoże jeszcze bardziej? ;)
 gcc -o colcnt colcnt.c -O3 -g -DFIXL1 -DFIXPREF
 perf stat -e cache-references:u,cache-misses:u ./colcnt random.bin
-
